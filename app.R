@@ -31,7 +31,7 @@ ui <- fluidPage(
             downloadButton('downloadallData', label = "Download All Assessment Data"),
             downloadButton('downloadData', label = "Download Assessment Data by Unit"),
             selectizeInput("AUs",
-                           "Select Assessment Unit",
+                           "Select one or more Assessment Units",
                            choices = assessed_AUs,
                            multiple = TRUE,
                            options = list(maxOptions = 7000))
