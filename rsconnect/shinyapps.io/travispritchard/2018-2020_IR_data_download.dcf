@@ -1,0 +1,12 @@
+name: 2018-2020_IR_data_download
+title: 2018-2020_IR_data_download
+username:
+account: travispritchard
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1490933
+bundleId: 2601162
+url: https://travispritchard.shinyapps.io/2018-2020_IR_data_download/
+when: 1574185005.95747
+asMultiple: FALSE
+asStatic: FALSE
