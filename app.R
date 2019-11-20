@@ -2,11 +2,10 @@
 library(shiny)
 library(tidyverse)
 library(shinybusy)
-library(knitr)
-library(kableExtra)
 library(shinythemes)
 library(shinyWidgets)
 library(openxlsx)
+library(zip)
 
 load('data/IR_data.Rdata')
 load("data/assessed_AUs.Rdata")
@@ -23,12 +22,11 @@ ui <- fluidPage(
             column(6,  "2018/2020 Integrated Report Data Download",style = "font-family: 'Arial'; font-si16pt; vertical-align: 'bottom'")),
         windowTitle = "2018/2020 Integrated Report Data"
     ),
-
+    sidebarLayout(
+        sidebarPanel(
 
         # Show a plot of the generated distribution
-        mainPanel(
-            
-            downloadButton('downloadallData', label = "Download All Assessment Data"),
+                   downloadButton('downloadallData', label = "Download All Assessment Data"),
             downloadButton('downloadData', label = "Download Assessment Data by Unit"),
             selectizeInput("AUs",
                            "Select one or more Assessment Units",
@@ -37,6 +35,28 @@ ui <- fluidPage(
                            options = list(maxOptions = 7000))
         
     ),
+    
+    
+    
+    mainPanel(
+        tabsetPanel(type = "tabs",
+                    id = "Tabset",
+                    tabPanel("Instructions",
+                             value = "InstructionTab",
+                             h2(strong("Download numeric data used in the 2018/2020 Integrated Report"), style = "font-family: 'Arial'"),
+                             p("DEQ recommends using the current version of Google Chrome or Mozilla Firefox for this application.", style = "font-family: 'times'"),
+                             p("This application provides the numeric data used in new assessments for the 2018/2020 Integrated Report. Clicking on the", strong('Download All Assessment Data'), "will
+                               download all numeric data used in new 2018/2020 assessments. Entering one or more Assessment Units in the search box and pressing",strong('Download All Assessment Data'), 
+                               "will download select data. Data will be downloaded bundled into a zip file" , 
+                               style = "font-family: 'times'"),
+                             p(strong("Due to the size of the file, downloading All Assessment Data may take a few minutes"), style = "font-family: 'times'"),
+                             p( 
+                                 a("A dictionary describing column headers can be found here", href="https://www.oregon.gov/deq/FilterDocs/ir2018assessMethod.pdf", target="_blank"), style = "font-family: 'times'")
+                             ))
+                             
+                             
+                    
+                    )),
     add_busy_spinner(spin = "fading-circle")
 )
 
@@ -144,7 +164,7 @@ server <- function(input, output) {
             print(tempdir())
             
             fs <- c("temp.xlsx", "Bacteria.xlsx", "Chlorophyll.xlsx",
-                    "DO_Spawning.xlsx", "DO_Yearround.xlsx", "pH.xlsx",
+                    "DO.xlsx", "pH.xlsx",
                     "Aquatic_Life_Toxics.xlsx", "Human_Health_Toxics.xlsx"
                     )
             
@@ -178,15 +198,15 @@ server <- function(input, output) {
             
             #DO
             
-            wb <- createWorkbook()
-            addWorksheet(wb, "DO_spawn_continuous")
-            addWorksheet(wb, "DO_spawn_instantaneous")
-            
-            writeData(wb,"DO_spawn_continuous",  filtered_data()$filtered_DO_cont_spawn, rowNames = FALSE)
-            writeData(wb,"DO_spawn_instantaneous", filtered_data()$filtered_DO_instant_spawn, rowNames = FALSE)
-            
-            saveWorkbook(wb, "DO_Spawning.xlsx", 
-                         overwrite = TRUE)
+            # wb <- createWorkbook()
+            # addWorksheet(wb, "DO_spawn_continuous")
+            # addWorksheet(wb, "DO_spawn_instantaneous")
+            # 
+            # writeData(wb,"DO_spawn_continuous",  filtered_data()$filtered_DO_cont_spawn, rowNames = FALSE)
+            # writeData(wb,"DO_spawn_instantaneous", filtered_data()$filtered_DO_instant_spawn, rowNames = FALSE)
+            # 
+            # saveWorkbook(wb, "DO_Spawning.xlsx", 
+            #              overwrite = TRUE)
             
             
             
@@ -194,11 +214,15 @@ server <- function(input, output) {
             wb <- createWorkbook()
             addWorksheet(wb, "DO_yearround_continuous")
             addWorksheet(wb, "DO_yearround_instantaneous")
+            addWorksheet(wb, "DO_spawn_continuous")
+            addWorksheet(wb, "DO_spawn_instantaneous")
             
             writeData(wb,"DO_yearround_continuous",  filtered_data()$filtered_DO_cont_yearround, rowNames = FALSE)
             writeData(wb,"DO_yearround_instantaneous",filtered_data()$filtered_DO_inst_yearround, rowNames = FALSE)
+            writeData(wb,"DO_spawn_continuous",  filtered_data()$filtered_DO_cont_spawn, rowNames = FALSE)
+            writeData(wb,"DO_spawn_instantaneous", filtered_data()$filtered_DO_instant_spawn, rowNames = FALSE)
             
-            saveWorkbook(wb, file = "DO_Yearround.xlsx", 
+            saveWorkbook(wb, file = "DO.xlsx", 
                          overwrite = TRUE)
             
         
@@ -232,12 +256,132 @@ server <- function(input, output) {
             saveWorkbook(wb, file = "Human_Health_Toxics.xlsx", 
                          overwrite = TRUE)
             
+            file.copy("data/All_data.zip", file)
+            
             print (fs)
             
             zip(zipfile=fname, files=fs)
         },
         contentType = "application/zip"
     )
+    
+    
+    # output$downloadallData <- downloadHandler(
+    #     filename = 'data_download.zip',
+    #     content = function(fname) {
+    #         tmpdir <- tempdir()
+    #         setwd(tempdir())
+    #         print(tempdir())
+    # 
+    #         fs <- c("temp.xlsx", "Bacteria.xlsx", "Chlorophyll.xlsx",
+    #                 "DO_Spawning.xlsx", "DO_Yearround.xlsx", "pH.xlsx",
+    #                 "Aquatic_Life_Toxics.xlsx", "Human_Health_Toxics.xlsx"
+    #         )
+    # 
+    #         #temperature
+    #         write.xlsx(filtered_data()$filtered_temp, file = "temp.xlsx",
+    #                    overwrite = TRUE)
+    # 
+    #         wb <- createWorkbook()
+    # 
+    #         # bacteria
+    #         addWorksheet(wb, "E coli")
+    #         addWorksheet(wb, "Enterococcus")
+    #         addWorksheet(wb, "Fecal Coliform")
+    # 
+    #         writeData(wb,"E coli",  bacteria_fresh_contact, rowNames = FALSE)
+    #         writeData(wb,"Enterococcus", bacteria_coast_contact, rowNames = FALSE)
+    #         writeData(wb,"Fecal Coliform", bacteria_Shell_harvest, rowNames = FALSE)
+    # 
+    #         saveWorkbook(wb, file = "Bacteria.xlsx",
+    #                      overwrite = TRUE)
+    # 
+    #         #chl
+    #         write.xlsx(chl,
+    #                    file = "Chlorophyll.xlsx",
+    #                    overwrite = TRUE)
+    # 
+    #         # pH
+    #         write.xlsx( pH,
+    #                     file = "pH.xlsx",
+    #                     overwrite = TRUE)
+    # 
+    #         #DO
+    # 
+    #         wb <- createWorkbook()
+    #         addWorksheet(wb, "DO_spawn_continuous")
+    #         addWorksheet(wb, "DO_spawn_instantaneous")
+    # 
+    #         writeData(wb,"DO_spawn_continuous",  DO_cont_spawn, rowNames = FALSE)
+    #         writeData(wb,"DO_spawn_instantaneous", DO_instant_spawn, rowNames = FALSE)
+    # 
+    #         saveWorkbook(wb, "DO_Spawning.xlsx",
+    #                      overwrite = TRUE)
+    # 
+    # 
+    # 
+    # 
+    #         wb <- createWorkbook()
+    #         addWorksheet(wb, "DO_yearround_continuous")
+    #         addWorksheet(wb, "DO_yearround_instantaneous")
+    # 
+    #         writeData(wb,"DO_yearround_continuous",  DO_cont_yearround, rowNames = FALSE)
+    #         writeData(wb,"DO_yearround_instantaneous",DO_inst_yearround, rowNames = FALSE)
+    # 
+    #         saveWorkbook(wb, file = "DO_Yearround.xlsx",
+    #                      overwrite = TRUE)
+    # 
+    # 
+    # 
+    #         wb <- createWorkbook()
+    #         addWorksheet(wb, 'Tox_AL_Others')
+    #         addWorksheet(wb,'Tox_AL_Ammonia')
+    #         addWorksheet(wb,'Tox_AL_CU')
+    #         addWorksheet(wb, 'Tox_AL_Hardness_Metals')
+    #         addWorksheet(wb, 'Tox_AL_Pentachlorophenol')
+    # 
+    #         writeData(wb,  'Tox_AL_Others', Tox_AL_Others, rowNames = FALSE)
+    #         writeData(wb, 'Tox_AL_Ammonia',  Tox_AL_Ammonia, rowNames = FALSE)
+    #         writeData(wb, 'Tox_AL_CU',  Tox_AL_CU, rowNames = FALSE)
+    #         writeData(wb, 'Tox_AL_Hardness_Metals',  Tox_AL_Hardness_Metals, rowNames = FALSE)
+    #         writeData(wb, 'Tox_AL_Pentachlorophenol',  Tox_AL_Penta, rowNames = FALSE)
+    # 
+    #         saveWorkbook(wb, file = "Aquatic_Life_Toxics.xlsx",
+    #                      overwrite = TRUE)
+    # 
+    # 
+    # 
+    # 
+    #         wb <- createWorkbook()
+    #         addWorksheet(wb, 'Tox_HH')
+    #         addWorksheet(wb,'Tox_HH_Hg_Tissue')
+    #         writeData(wb, 'Tox_HH',  Tox_HH, rowNames = FALSE)
+    #         writeData(wb, 'Tox_HH_Hg_Tissue',  Tox_HH_Hg_tissue, rowNames = FALSE)
+    # 
+    # 
+    #         saveWorkbook(wb, file = "Human_Health_Toxics.xlsx",
+    #                      overwrite = TRUE)
+    # 
+    #         print (fs)
+    # 
+    #         zip(zipfile=fname, files=fs)
+    #     },
+    #     contentType = "application/zip"
+    # )
+    
+    
+    output$downloadallData <-  downloadHandler(
+        filename <- function() {
+            paste("data_download", "zip", sep=".")
+        },
+        
+        content <- function(file) {
+            file.copy("data/All_data.zip", file)
+        },
+        contentType = "application/zip"
+    )
+    
+    
 }
 
 # Run the application 
