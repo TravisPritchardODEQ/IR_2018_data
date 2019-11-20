@@ -1,3 +1,6 @@
+load('data/IR_data.Rdata')
+
+
 #temperature
 write.xlsx(temp, file = "temp.xlsx",
            overwrite = TRUE)
@@ -10,7 +13,7 @@ addWorksheet(wb, "Enterococcus")
 addWorksheet(wb, "Fecal Coliform")
 
 writeData(wb,"E coli",  bacteria_fresh_contact, rowNames = FALSE)
-writeData(wb,"Enterococcus", coast_contact, rowNames = FALSE)
+writeData(wb,"Enterococcus", bacteria_coast_contact, rowNames = FALSE)
 writeData(wb,"Fecal Coliform", bacteria_Shell_harvest, rowNames = FALSE)
 
 saveWorkbook(wb, file = "Bacteria.xlsx", 
@@ -28,15 +31,15 @@ write.xlsx( pH,
 
 #DO
 
-wb <- createWorkbook()
-addWorksheet(wb, "DO_spawn_continuous")
-addWorksheet(wb, "DO_spawn_instantaneous")
-
-writeData(wb,"DO_spawn_continuous",  DO_cont_spawn, rowNames = FALSE)
-writeData(wb,"DO_spawn_instantaneous", DO_instant_spawn, rowNames = FALSE)
-
-saveWorkbook(wb, "DO_Spawning.xlsx", 
-             overwrite = TRUE)
+# wb <- createWorkbook()
+# addWorksheet(wb, "DO_spawn_continuous")
+# addWorksheet(wb, "DO_spawn_instantaneous")
+# 
+# writeData(wb,"DO_spawn_continuous",  DO_cont_spawn, rowNames = FALSE)
+# writeData(wb,"DO_spawn_instantaneous", DO_instant_spawn, rowNames = FALSE)
+# 
+# saveWorkbook(wb, "DO_Spawning.xlsx", 
+#              overwrite = TRUE)
 
 
 
@@ -44,11 +47,15 @@ saveWorkbook(wb, "DO_Spawning.xlsx",
 wb <- createWorkbook()
 addWorksheet(wb, "DO_yearround_continuous")
 addWorksheet(wb, "DO_yearround_instantaneous")
+addWorksheet(wb, "DO_spawn_continuous")
+addWorksheet(wb, "DO_spawn_instantaneous")
 
 writeData(wb,"DO_yearround_continuous", DO_cont_yearround, rowNames = FALSE)
 writeData(wb,"DO_yearround_instantaneous",DO_inst_yearround, rowNames = FALSE)
+writeData(wb,"DO_spawn_continuous",  DO_cont_spawn, rowNames = FALSE)
+writeData(wb,"DO_spawn_instantaneous", DO_instant_spawn, rowNames = FALSE)
 
-saveWorkbook(wb, file = "DO_Yearround.xlsx", 
+saveWorkbook(wb, file = "DO.xlsx", 
              overwrite = TRUE)
 
 

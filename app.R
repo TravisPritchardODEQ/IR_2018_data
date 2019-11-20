@@ -50,8 +50,14 @@ ui <- fluidPage(
                                "will download select data. Data will be downloaded bundled into a zip file" , 
                                style = "font-family: 'times'"),
                              p(strong("Due to the size of the file, downloading All Assessment Data may take a few minutes"), style = "font-family: 'times'"),
+                             p("A dictionary describing column headers is included in the zip file", style = "font-family: 'times'"),
+                             p("A  complete mapping and dataset, including water quality standards information can be found on the ", 
+                               a("Interactive web map.", href="https://hdcgcx2.deq.state.or.us/HVR291/?viewer=wqsa#", target="_blank"), 
+                               "Assessment conculsions can be found on the ", a("online assessment database.", href="https://travispritchard.shinyapps.io/2018-2020_IR_Database/", target="_blank"), style = "font-family: 'times'"),
                              p( 
-                                 a("A dictionary describing column headers can be found here", href="https://www.oregon.gov/deq/FilterDocs/ir2018assessMethod.pdf", target="_blank"), style = "font-family: 'times'")
+                                 a("The 2018/2020 Assessment Methodology can be found here.", href="https://www.oregon.gov/deq/FilterDocs/ir2018assessMethod.pdf", target="_blank"), style = "font-family: 'times'"),
+                             p(
+                                 a("The DEQ 2018/2020 IR webpage page can be found here.", href="https://www.oregon.gov/deq/wq/Pages/2018-Integrated-Report.aspx", target="_blank"), style = "font-family: 'times'")
                              ))
                              
                              
@@ -157,15 +163,17 @@ server <- function(input, output) {
     # 
 
     output$downloadData <- downloadHandler(
-        filename = 'data_download.zip',
+        filename = '2018_2020_IR_select_data_download.zip',
         content = function(fname) {
+            original_wd <- getwd()
             tmpdir <- tempdir()
             setwd(tempdir())
             print(tempdir())
-            
+
             fs <- c("temp.xlsx", "Bacteria.xlsx", "Chlorophyll.xlsx",
                     "DO.xlsx", "pH.xlsx",
-                    "Aquatic_Life_Toxics.xlsx", "Human_Health_Toxics.xlsx"
+                    "Aquatic_Life_Toxics.xlsx", "Human_Health_Toxics.xlsx",
+                    "IR_Data_Dictionary.xlsx"
                     )
             
             #temperature
@@ -256,11 +264,13 @@ server <- function(input, output) {
             saveWorkbook(wb, file = "Human_Health_Toxics.xlsx", 
                          overwrite = TRUE)
             
-            file.copy("data/All_data.zip", file)
+            file.copy(paste0(original_wd, "/data/IR_Data_Dictionary.xlsx"), "IR_Data_Dictionary.xlsx")
             
             print (fs)
             
             zip(zipfile=fname, files=fs)
+           
+            setwd(original_wd)
         },
         contentType = "application/zip"
     )
@@ -372,7 +382,7 @@ server <- function(input, output) {
     
     output$downloadallData <-  downloadHandler(
         filename <- function() {
-            paste("data_download", "zip", sep=".")
+            paste("2018_2020_IR_all_data_download", "zip", sep=".")
         },
         
         content <- function(file) {
